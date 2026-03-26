@@ -43,8 +43,11 @@ class Pet:
     species: str
     breed: str
     age: int
-    tasks: list[Task] = field(default_factory=list)
     schedule: Schedule = None
+
+    @property
+    def tasks(self) -> list[Task]:
+        pass
 
     def assign_task(self, task: Task) -> None:
         pass

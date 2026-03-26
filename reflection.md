@@ -1,16 +1,23 @@
 # PawPal+ Project Reflection
 
 ## 1. System Design
+Actions:
+Add/remove tasks
+Register pets
+View and order tasks(Schedule building)
 
 **a. Initial design**
 
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+The classes I chose were Owner, Pet, Schedule, and Task. My UML was as follows: An owner owns a pet, creates a schedule and creates a task. The pet has a schedule and is assigned a task. A schedule contains a task. The owner could register a pet, create a task and a schedule. Pets could be assigned tasks,schedules, and can generate summaries. Schedules can add and remove tasks, as well as generate a plan based on priority. A task is lowest on the UML diagram, being able to be edited and marked complete.
+
 **b. Design changes**
 
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
+Yes, it did change. Originally, both the schedule and the pet had tasks as attributes. The issue was that they were both pointing to the same tasks in two different methods, which would cause issues with updating one another. Because of this, we changed the task list from pet to a derived property from the schedule tasks.
 
 ---
 
