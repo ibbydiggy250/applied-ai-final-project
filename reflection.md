@@ -17,6 +17,7 @@ The classes I chose were Owner, Pet, Schedule, and Task. My UML was as follows: 
 
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
+
 Yes, it did change. Originally, both the schedule and the pet had tasks as attributes. The issue was that they were both pointing to the same tasks in two different methods, which would cause issues with updating one another. Because of this, we changed the task list from pet to a derived property from the schedule tasks.
 
 ---
@@ -28,10 +29,14 @@ Yes, it did change. Originally, both the schedule and the pet had tasks as attri
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
 - How did you decide which constraints mattered most?
 
+The scheduler considers priority as a constraint. Tasks are given priority, and based on that are ordered. This mattered the most because an owner would like to priortize different things, like walking before cleaning, or eating before walking, so this just made those priorities clearer, which is why I picked this as my contraint
+
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
+
+One tradeoff I made was that the scheduler sorts purely based on priority, ignoring duration. However, I found this tradeoff reasonable because inherintely, priority comes with an ordered timing, and some things may need to happen no matter how long is takes. Priority makes more sense to order than duration.
 
 ---
 
@@ -46,6 +51,8 @@ Yes, it did change. Originally, both the schedule and the pet had tasks as attri
 
 - Describe one moment where you did not accept an AI suggestion as-is.
 - How did you evaluate or verify what the AI suggested?
+
+Rejected initial schedule plan.
 
 ---
 

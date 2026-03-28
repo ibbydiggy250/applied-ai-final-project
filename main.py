@@ -12,14 +12,14 @@ owner.register_pet(buddy)
 owner.register_pet(whiskers)
 
 # --- Tasks for Buddy ---
-buddy.assign_task(owner.create_task("Morning Walk",     duration=30, priority=3, description="Walk around the block"))
-buddy.assign_task(owner.create_task("Feeding",          duration=10, priority=5, description="Dry food, 1 cup"))
-buddy.assign_task(owner.create_task("Grooming",         duration=20, priority=1, description="Brush coat"))
+buddy.assign_task(owner.create_task("Morning Walk",     duration=30, priority=3, description="Walk around the block",  frequency="daily"))
+buddy.assign_task(owner.create_task("Feeding",          duration=10, priority=5, description="Dry food, 1 cup",          frequency="daily"))
+buddy.assign_task(owner.create_task("Grooming",         duration=20, priority=1, description="Brush coat",               frequency="weekly"))
 
 # --- Tasks for Whiskers ---
-whiskers.assign_task(owner.create_task("Feeding",       duration=10, priority=5, description="Wet food, half can"))
-whiskers.assign_task(owner.create_task("Playtime",      duration=15, priority=2, description="Feather toy session"))
-whiskers.assign_task(owner.create_task("Litter Box",    duration=5,  priority=4, description="Clean and refill"))
+whiskers.assign_task(owner.create_task("Feeding",       duration=10, priority=5, description="Wet food, half can",       frequency="daily"))
+whiskers.assign_task(owner.create_task("Playtime",      duration=15, priority=2, description="Feather toy session",      frequency="daily"))
+whiskers.assign_task(owner.create_task("Litter Box",    duration=5,  priority=4, description="Clean and refill",         frequency="weekly"))
 
 # --- Today's Schedule ---
 plan = owner.scheduler.generate_plan()
@@ -30,7 +30,7 @@ print("=" * 40)
 
 for i, task in enumerate(plan, start=1):
     status = "Done" if task.completed else "Pending"
-    print(f"{i}. [{task.priority}] {task.name:<15} {task.duration} min  |  {status}")
+    print(f"{i}. [{task.priority}] {task.name:<15} {task.duration} min  |  {task.frequency:<8}  |  {status}")
     print(f"   {task.description}")
     print()
 

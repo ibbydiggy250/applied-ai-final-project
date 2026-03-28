@@ -7,14 +7,16 @@ class Task:
     duration: int
     priority: int
     description: str
+    frequency: str = "once"
     completed: bool = False
 
-    def edit(self, name: str, duration: int, priority: int, description: str) -> None:
+    def edit(self, name: str, duration: int, priority: int, description: str, frequency: str) -> None:
         # Overwrites the task's attributes with the provided values.
         self.name = name
         self.duration = duration
         self.priority = priority
         self.description = description
+        self.frequency = frequency
 
     def mark_complete(self) -> None:
         # Sets the task as completed.
@@ -48,8 +50,8 @@ class Scheduler:
         return [task for pet in self.owner.pets for task in pet.tasks]
 
     def generate_plan(self) -> list[Task]:
-        # Returns all tasks sorted by priority, highest first.
-        return sorted(self.get_all_tasks(), key=lambda t: t.priority, reverse=True)
+        # Returns all tasks sorted by priority, lowest number first (1 = highest priority).
+        return sorted(self.get_all_tasks(), key=lambda t: t.priority)
 
 
 @dataclass
@@ -63,6 +65,6 @@ class Owner:
         # Adds a pet to the owner's pet list.
         self.pets.append(pet)
 
-    def create_task(self, name: str, duration: int, priority: int, description: str) -> Task:
+    def create_task(self, name: str, duration: int, priority: int, description: str, frequency: str = "daily") -> Task:
         # Instantiates and returns a new Task with the given attributes.
-        return Task(name=name, duration=duration, priority=priority, description=description)
+        return Task(name=name, duration=duration, priority=priority, description=description, frequency=frequency)
