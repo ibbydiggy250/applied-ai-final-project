@@ -161,7 +161,7 @@ if st.button("Generate schedule"):
     if plan:
         st.write("Today's Schedule:")
         for i, task in enumerate(plan, start=1):
-            st.markdown(f"**{i}. [{task.priority}] {task.name}** — {task.duration} min")
+            st.markdown(f"**{i}. [{task.priority}] {task.name}** — {task.time}")
     else:
         st.info("No tasks found. Register a pet and add tasks first.")
 '''     
