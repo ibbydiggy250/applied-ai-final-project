@@ -36,7 +36,7 @@ The scheduler considers priority as a constraint. Tasks are given priority, and 
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
 
-One tradeoff I made was that the scheduler sorts purely based on priority, ignoring duration. However, I found this tradeoff reasonable because inherintely, priority comes with an ordered timing, and some things may need to happen no matter how long is takes. Priority makes more sense to order than duration.
+One tradeoff I made was that when generating a plan, the scheduler sorts purely based on priority, ignoring time. However, I found this tradeoff reasonable because inherintely, priority comes with an ordered timing, and some things may need to happen no matter of the time. Priority makes more sense to order than duration. Also, detect conflicts only relies on if the HH:MM matches. For example, you could have one thing at 08:00 and another at 08:10. Even if the activities overlap, you are able to put them both because the times are different. This is reasonable for now because it is for simplicity, but overlaps can happen.
 
 ---
 
@@ -52,8 +52,7 @@ One tradeoff I made was that the scheduler sorts purely based on priority, ignor
 - Describe one moment where you did not accept an AI suggestion as-is.
 - How did you evaluate or verify what the AI suggested?
 
-Rejected initial schedule plan.
-
+One example is when I asked it to look at the renew function, and see if I could simplify it. However, it told me to swap the if else statements with a dictionary lookup. While this was technically a more efficient and pythonic way of doing things, I figured it was harder to follow what it was doing. Thus, I kept the if else statements in order to make it human readable.
 ---
 
 ## 4. Testing and Verification

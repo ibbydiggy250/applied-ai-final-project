@@ -32,6 +32,16 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+# Smarter Scheduling
+
+    We implemented some algorithms in this project to make it smarter. One thing was sorting and filtering by time, pet name, and completion. This was to allow better viewing experience and more ordered tasks. Another was automating recurring tasks. If a task is daily, and you mark it complete, it will create a new task for tomorrow. If a task is weekly, and you mark it complete, it will be due in 7 days. This is to automate things better for the user, ensuring them putting daily or weekly actually reflects onto the app. Finally, we used conflict detection to ensure the user is not putting two tasks at the same time.
+
+# Testing PawPal+
+To run: python -m pytest
+
+I have 9 tests running to ensure system reliability. These tests cover ensuring completed actually gets marked, tasks are added to the list, out-of-order tasks become sorted, conflict detection is ensured, making sure an empty schedule does not crash, a task on pet a blocks pet b at the same time, a completed task still blocks a new task at the same time, and with two pets and mixed completion only the completed pets task is returned.
+
+I would give my reliability a 4/5, since these tests cover both happy path and edge cases, which is important to ensure user experience is not deterred.
 ### Suggested workflow
 
 1. Read the scenario carefully and identify requirements and edge cases.

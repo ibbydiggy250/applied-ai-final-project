@@ -1,12 +1,16 @@
 classDiagram
     class Task {
         +String name
-        +int duration
+        +String time
         +int priority
         +String description
+        +String frequency
         +bool completed
-        +edit(name, duration, priority, description)
+        +date due_date
+        +/due_in : String
+        +edit(name, time, priority, description, frequency)
         +mark_complete()
+        +renew()
     }
 
     class Pet {
@@ -23,6 +27,9 @@ classDiagram
         +Owner owner
         +get_all_tasks()
         +generate_plan()
+        +filter_tasks(pet_name, completed)
+        +detect_conflicts(candidate)
+        +sort_by_time()
     }
 
     class Owner {
@@ -31,7 +38,7 @@ classDiagram
         +List~Pet~ pets
         +Scheduler scheduler
         +register_pet(pet)
-        +create_task(name, duration, priority, description)
+        +create_task(name, time, priority, description, frequency)
     }
 
     Owner "1" --> "0..*" Pet : owns
@@ -39,3 +46,4 @@ classDiagram
     Owner ..> Task : creates
     Pet "1" --> "0..*" Task : stores
     Scheduler --> Owner : references
+    Task --> Task : renew()
