@@ -1,0 +1,33 @@
+# PawPal+ Agentic Workflow — Implementation Checklist
+
+## AI Features Being Added
+- Rule-based AI agent (PawAgent) that autonomously manages pet care schedules
+- Full schedule generation for new/empty pets using species + age + breed templates
+- Urgency escalation: overdue tasks get priority boosted automatically
+- Coverage checking: missing feeding/activity/hygiene tasks are auto-added
+- Conflict resolution: clashing time slots are automatically rescheduled
+- Species/age rules: senior dogs get vet checks, cats get litter tasks, etc.
+- Visible reasoning log: every agent decision is shown step-by-step in the UI
+
+## Implementation Order
+
+### Core Backend
+- [ ] 1. Add `agent_created: bool = False` field to `Task` dataclass
+- [ ] 2. Add `AgentDecision` dataclass (rule, action, reasoning, target)
+- [ ] 3. Wire up `age` and `breed` inputs in pet registration UI
+- [ ] 4. Add `SPECIES_TEMPLATES` and `HIGH_ENERGY_BREEDS` lookup tables
+- [ ] 5. Implement Profile Rule (generate full schedule for empty pets)
+- [ ] 6. Implement Urgency Rule (proportional priority escalation for overdue tasks)
+- [ ] 7. Implement Coverage Rule (auto-add missing feeding/activity/hygiene tasks)
+- [ ] 8. Implement Species Rule (species/age-specific task additions)
+- [ ] 9. Implement Conflict Resolution Rule (retime clashing tasks)
+- [ ] 10. Add guardrails (10-task cap, 23:30 ceiling, idempotency checks)
+
+### UI
+- [ ] 11. Add AI Agent UI section (Run Agent button + reasoning log display)
+- [ ] 12. Make guardrail firings visible in the UI (e.g. warning when cap hit, when conflict unresolvable)
+
+### Documentation & Diagrams (Rubric Requirements)
+- [ ] 13. Update architecture/UML diagram to include PawAgent, AgentDecision, SPECIES_TEMPLATES, and agent data flow (input → perceive → rules → act → UI output)
+- [ ] 14. Update README: add section clearly identifying original PawPal+ scope vs. what was extended and why
+- [ ] 15. Add 2-3 documented end-to-end demo scenarios to README (e.g. empty dog → full schedule, conflict scenario, overdue task scenario)

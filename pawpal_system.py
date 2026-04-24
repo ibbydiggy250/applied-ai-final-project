@@ -1,6 +1,32 @@
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
+SPECIES_TEMPLATES: dict[str, list[dict]] = {
+    "dog": [
+        {"name": "Morning walk",  "time": "07:00", "priority": 2, "frequency": "daily"},
+        {"name": "Feeding",       "time": "08:00", "priority": 1, "frequency": "daily"},
+        {"name": "Evening walk",  "time": "18:00", "priority": 2, "frequency": "daily"},
+        {"name": "Dinner",        "time": "18:30", "priority": 1, "frequency": "daily"},
+        {"name": "Grooming",      "time": "10:00", "priority": 3, "frequency": "weekly"},
+    ],
+    "cat": [
+        {"name": "Feeding",             "time": "08:00", "priority": 1, "frequency": "daily"},
+        {"name": "Litter box cleaning", "time": "09:00", "priority": 2, "frequency": "daily"},
+        {"name": "Dinner",              "time": "18:00", "priority": 1, "frequency": "daily"},
+        {"name": "Playtime",            "time": "19:00", "priority": 3, "frequency": "daily"},
+    ],
+    "other": [
+        {"name": "Feeding",          "time": "08:00", "priority": 1, "frequency": "daily"},
+        {"name": "Habitat cleaning", "time": "10:00", "priority": 2, "frequency": "weekly"},
+    ],
+}
+
+HIGH_ENERGY_BREEDS: set[str] = {
+    "husky", "siberian husky", "border collie", "australian shepherd",
+    "labrador", "golden retriever", "jack russell", "dalmatian",
+    "vizsla", "weimaraner",
+}
+
 
 @dataclass
 class Task:
@@ -11,6 +37,7 @@ class Task:
     frequency: str = "once"
     completed: bool = False
     due_date: date = field(default_factory=date.today)
+    agent_created: bool = False
 
     def edit(self, name: str, time: str, priority: int, description: str, frequency: str) -> None:
         # Overwrites the task's attributes with the provided values.
@@ -54,6 +81,14 @@ class Task:
             return "Due tomorrow"
         else:
             return f"Due in {days} days"
+
+
+@dataclass
+class AgentDecision:
+    rule: str
+    action: str
+    reasoning: str
+    target: str
 
 
 @dataclass

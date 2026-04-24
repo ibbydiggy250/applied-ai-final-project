@@ -43,9 +43,11 @@ st.subheader("Quick Demo Inputs (UI only)")
 owner_name = st.text_input("Owner name", value="Jordan")
 pet_name = st.text_input("Pet name", value="Mochi")
 species = st.selectbox("Species", ["dog", "cat", "other"])
+breed = st.text_input("Breed", value="")
+age = st.number_input("Age (years)", min_value=0, max_value=30, value=0, step=1)
 
 if st.button("Register Pet"):
-    pet = Pet(name=pet_name, species=species, breed="", age=0)
+    pet = Pet(name=pet_name, species=species, breed=breed, age=int(age))
     st.session_state.owner.name = owner_name
     st.session_state.owner.register_pet(pet)
     st.session_state.pets.append(pet)
