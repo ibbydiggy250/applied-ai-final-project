@@ -1,5 +1,8 @@
 # PawPal+ Agentic Workflow — Implementation Checklist
 
+##Extension being Added:
+Integrate agentic planning and error-logging into the existing workflow
+- Agentic loop + logging
 ## AI Features Being Added
 - Rule-based AI agent (PawAgent) that autonomously manages pet care schedules
 - Full schedule generation for new/empty pets using species + age + breed templates
