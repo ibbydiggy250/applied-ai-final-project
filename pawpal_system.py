@@ -162,3 +162,37 @@ class Owner:
     def create_task(self, name: str, time: str, priority: int, description: str, frequency: str = "daily") -> Task:
         # Instantiates and returns a new Task with the given attributes.
         return Task(name=name, time=time, priority=priority, description=description, frequency=frequency)
+
+
+@dataclass
+class PawAgent:
+    owner: Owner
+    decisions: list[AgentDecision] = field(default_factory=list)
+
+    def run(self) -> list[AgentDecision]:
+        self.decisions = []
+        self._profile_rule()
+        return self.decisions
+
+    def _profile_rule(self) -> None:
+        # For every pet with no tasks, generate a full schedule from SPECIES_TEMPLATES.
+        for pet in self.owner.pets:
+            if pet.tasks:
+                continue
+            templates = SPECIES_TEMPLATES.get(pet.species, SPECIES_TEMPLATES["other"])
+            for t in templates:
+                task = Task(
+                    name=t["name"],
+                    time=t["time"],
+                    priority=t["priority"],
+                    description=f"Auto-generated for {pet.name}",
+                    frequency=t["frequency"],
+                    agent_created=True,
+                )
+                pet.assign_task(task)
+                self.decisions.append(AgentDecision(
+                    rule="ProfileRule",
+                    action=f"Added '{t['name']}' to {pet.name}",
+                    reasoning=f"{pet.name} had no tasks; generated default {pet.species} schedule",
+                    target=pet.name,
+                ))

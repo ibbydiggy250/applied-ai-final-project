@@ -1,5 +1,5 @@
 import streamlit as st
-from pawpal_system import Owner, Pet, Scheduler, Task
+from pawpal_system import Owner, Pet, Scheduler, Task, PawAgent
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -66,6 +66,8 @@ if "pets" not in st.session_state:
     st.session_state.pets = []
 if "scheduler" not in st.session_state:
     st.session_state.scheduler = Scheduler(owner=st.session_state.owner)
+if "agent_decisions" not in st.session_state:
+    st.session_state.agent_decisions = []
 
 col1, col2, col3, col4 = st.columns(4)
 with col1:
@@ -166,12 +168,25 @@ if st.button("Generate schedule"):
             st.markdown(f"**{i}. [{task.priority}] {task.name}** — {task.time}")
     else:
         st.info("No tasks found. Register a pet and add tasks first.")
-'''     
-Suggested approach:
-1. Design your UML (draft).
-2. Create class stubs (no logic).
-3. Implement scheduling behavior.
-4. Connect your scheduler here and display results.
-"""
-    )
-'''
+st.divider()
+
+st.subheader("AI Agent")
+st.caption("Runs PawAgent against all registered pets and shows its reasoning.")
+
+if st.button("Run Agent"):
+    agent = PawAgent(owner=st.session_state.owner)
+    decisions = agent.run()
+    # Sync session state so agent-created tasks appear in the task table.
+    st.session_state.tasks = [
+        (task, pet.name)
+        for pet in st.session_state.pets
+        for task in pet.tasks
+    ]
+    st.session_state.agent_decisions = decisions
+    st.rerun()
+
+if st.session_state.agent_decisions:
+    for d in st.session_state.agent_decisions:
+        st.markdown(f"**[{d.rule}]** {d.action}  \n*{d.reasoning}*")
+else:
+    st.info("No agent decisions yet. Register a pet with no tasks and click Run Agent.")
