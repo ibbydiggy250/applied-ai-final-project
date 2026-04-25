@@ -172,6 +172,8 @@ class PawAgent:
     def run(self) -> list[AgentDecision]:
         self.decisions = []
         self._profile_rule()
+        self._coverage_rule()
+        self._urgency_rule()
         return self.decisions
 
     def _profile_rule(self) -> None:
@@ -194,5 +196,66 @@ class PawAgent:
                     rule="ProfileRule",
                     action=f"Added '{t['name']}' to {pet.name}",
                     reasoning=f"{pet.name} had no tasks; generated default {pet.species} schedule",
+                    target=pet.name,
+                ))
+
+    def _coverage_rule(self) -> None:
+        # For pets with tasks, auto-add any missing feeding/activity/hygiene task.
+        categories = {
+            "feeding":  ["feed", "dinner"],
+            "activity": ["walk", "play"],
+            "hygiene":  ["groom", "litter", "clean"],
+        }
+        for pet in self.owner.pets:
+            if not pet.tasks:
+                continue
+            existing_names = [t.name.lower() for t in pet.tasks]
+            templates = SPECIES_TEMPLATES.get(pet.species, SPECIES_TEMPLATES["other"])
+            for category, keywords in categories.items():
+                covered = any(kw in name for name in existing_names for kw in keywords)
+                if covered:
+                    continue
+                template = next(
+                    (t for t in templates if any(kw in t["name"].lower() for kw in keywords)),
+                    None,
+                )
+                if template is None:
+                    continue
+                task = Task(
+                    name=template["name"],
+                    time=template["time"],
+                    priority=template["priority"],
+                    description=f"Auto-generated for {pet.name}",
+                    frequency=template["frequency"],
+                    agent_created=True,
+                )
+                pet.assign_task(task)
+                self.decisions.append(AgentDecision(
+                    rule="CoverageRule",
+                    action=f"Added '{template['name']}' to {pet.name}",
+                    reasoning=f"{pet.name} had no {category} task",
+                    target=pet.name,
+                ))
+
+    def _urgency_rule(self) -> None:
+        # Proportionally escalate priority for overdue incomplete tasks.
+        # Boost = days_overdue // 2, clamped so priority never goes below 1.
+        today = date.today()
+        for pet in self.owner.pets:
+            for task in pet.tasks:
+                if task.completed:
+                    continue
+                days_overdue = (today - task.due_date).days
+                if days_overdue <= 0:
+                    continue
+                boost = min(days_overdue // 2, task.priority - 1)
+                if boost == 0:
+                    continue
+                old_priority = task.priority
+                task.priority -= boost
+                self.decisions.append(AgentDecision(
+                    rule="UrgencyRule",
+                    action=f"Raised '{task.name}' priority {old_priority} → {task.priority}",
+                    reasoning=f"Task is {days_overdue} day(s) overdue",
                     target=pet.name,
                 ))
