@@ -189,9 +189,11 @@ def test_coverage_rule_adds_missing_feeding():
 def test_coverage_rule_skips_fully_covered_pet():
     owner = Owner(name="Alex", email="alex@example.com")
     pet = Pet(name="Buddy", species="dog", breed="Labrador", age=3)
-    pet.assign_task(Task(name="Feeding",      time="08:00", priority=1, description=""))
     pet.assign_task(Task(name="Morning walk", time="07:00", priority=2, description=""))
+    pet.assign_task(Task(name="Feeding",      time="08:00", priority=1, description=""))
     pet.assign_task(Task(name="Grooming",     time="10:00", priority=3, description=""))
+    pet.assign_task(Task(name="Evening walk", time="18:00", priority=2, description=""))
+    pet.assign_task(Task(name="Dinner",       time="18:30", priority=1, description=""))
     owner.register_pet(pet)
     decisions = PawAgent(owner=owner).run()
     assert not any(d.rule == "CoverageRule" for d in decisions)

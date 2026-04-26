@@ -1,71 +1,99 @@
-# PawPal+ (Module 2 Project)
+# PawPal+
 
-You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
+## Original Project
 
-## Scenario
+PawPal+ started as a Streamlit app for pet owners to manually track and schedule care tasks for their pets. Owners could register pets, assign tasks with a time, priority, and frequency, and the scheduler would sort tasks by priority and detect time conflicts. The system was entirely passive, the user was responsible for creating every task and resolving every issue.
 
-A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
+---
 
-- Track pet care tasks (walks, feeding, meds, enrichment, grooming, etc.)
-- Consider constraints (time available, priority, owner preferences)
-- Produce a daily plan and explain why it chose that plan
+## Title and Summary
 
-Your job is to design the system first (UML), then implement the logic in Python, then connect it to the Streamlit UI.
+This project is called PawPal+, an app to put all your pets needs in one place.  You can register a pet with attributes such as species, breed, age, etc. From here, you can assign tasks to these pets at different times, priorities, along with due dates. If you have a recurring task, once you complete it, it will automatically create another task for the next due date. If two events overlap, the system will warn you, since a pet can’t do two things at once. However, sometimes an owner has trouble figuring out what tasks are best for their pet. Many pets have different needs based on their species, breed, or their age. They also may have trouble assigning the correct attributes to each task.
 
-## What you will build
+This is where **PawAgent** comes in. PawAgent is a built-in AI that can create tasks for your pet based on the attributes you assigned to it. Whether it's creating a completely new set of tasks, building on tasks you’ve already listed, or just resolving conflicts, PawAgent allows you to see the best tasks for your pet, without you having to create your own tasks. PawAgent pulls from different data, such as what the species of the animal is and the specific breed. On top of this, after creating your tasks, PawAgent can generate a schedule so that you can plan your day.
 
-Your final app should:
 
-- Let a user enter basic owner + pet info
-- Let a user add/edit tasks (duration + priority at minimum)
-- Generate a daily schedule/plan based on constraints and priorities
-- Display the plan clearly (and ideally explain the reasoning)
-- Include tests for the most important scheduling behaviors
+---
 
-## Getting started
+## Architecture Overview
 
-### Setup
+This system is broken into 4 parts. First, the user inputs the pet info, as well as any tasks if required. Then, there are 4 data models made: The owner, which has a scheduler and their pets. The pets then have their tasks. From these data models, the user can run PawAgent. PawAgent populates the tasks using a set of rules that gives instructions as to how and when to populate the tasks for different animals. These also have guardrails to enforce task caps, time ceilings, and idempotency. Finally, each rule produces an AgentDecision that shows up on the UI as a step-by-step reason for each task, as well as an updated schedule.
 
-```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+---
+
+## Setup Instructions
+
+### Prerequisites
+- Python 3.10 or higher
+
+### Installation
+
+1. Clone the repository
+2. Create a virtual environment:
+   ```
+   python -m venv .venv
+   ```
+3. Activate the virtual environment:
+   - Windows: `.venv\Scripts\activate`
+   - Mac/Linux: `source .venv/bin/activate`
+4. Install dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+
+### Running the App
+```
+streamlit run app.py
 ```
 
-# Smarter Scheduling
+### Running Tests
+```
+python -m pytest
+```
 
-    We implemented some algorithms in this project to make it smarter. One thing was sorting and filtering by time, pet name, and completion. This was to allow better viewing experience and more ordered tasks. Another was automating recurring tasks. If a task is daily, and you mark it complete, it will create a new task for tomorrow. If a task is weekly, and you mark it complete, it will be due in 7 days. This is to automate things better for the user, ensuring them putting daily or weekly actually reflects onto the app. Finally, we used conflict detection to ensure the user is not putting two tasks at the same time.
+---
 
-# Testing PawPal+
-To run: python -m pytest
+## Sample Interactions
 
-I have 9 tests running to ensure system reliability. These tests cover ensuring completed actually gets marked, tasks are added to the list, out-of-order tasks become sorted, conflict detection is ensured, making sure an empty schedule does not crash, a task on pet a blocks pet b at the same time, a completed task still blocks a new task at the same time, and with two pets and mixed completion only the completed pets task is returned.
+### Input 1 — Buddy (Dog, Labrador, Age 3) — No tasks
+Buddy is registered with no tasks. PawAgent runs the Profile Rule and generates a full dog schedule from scratch. Because Labrador is a high-energy breed, the Species Rule also adds a Midday walk.
 
-I would give my reliability a 4/5, since these tests cover both happy path and edge cases, which is important to ensure user experience is not deterred.
+**Resulting schedule:**
 
-# Features
-Task Filtering:
-Filter the task table by pet name, completion status, or both simultaneously. Built as a single-pass list comprehension using None as a sentinel — only active filters are evaluated, so no separate methods are needed for each combination.
+![alt text](image-1.png)
+---
 
-Sort by Time:
-Sort all tasks chronologically by their scheduled time. Because all times follow HH:MM format, Python's built-in sorted() with a string key works correctly without any datetime parsing — lexicographic order matches chronological order.
+### Input 2 — Mochi (Dog, Bulldog, Age 2) — Morning walk manually added at 08:00
+Mochi already has one task. The Coverage Rule fills in the rest of the recommended dog schedule. Because Morning walk was added at 08:00 — the same time Feeding was going to be placed — the Conflict Rule moves Morning walk to 08:30. No Midday walk is added since Bulldog is not a high-energy breed.
 
-Recurring Tasks:
-Mark a daily or weekly task complete and a new instance is automatically created for the next occurrence — tomorrow for daily, 7 days later for weekly. The original task is preserved as completed; timedelta arithmetic advances the due date on the new task.
+**Resulting schedule:**
 
-Conflict Detection:
-Before any task is added, the scheduler checks all existing tasks across every pet for a matching time slot. If a conflict is found, the user sees a warning naming the clashing task — and the new task is blocked from being added without crashing the app.
+![alt text](image-2.png)
 
-# Demo
+---
 
-![PawPal App](demo.png)
+### Input 3 — Mochi (Cat, Abyssinian, Age 10) — No tasks
+Mochi is a senior cat with no tasks. The Profile Rule generates a full cat schedule from scratch. The Species Rule then adds a weekly Vet check because Mochi is age 10 (≥ 7).
 
-### Suggested workflow
+**Resulting schedule:**
+![alt text](image-3.png)
 
-1. Read the scenario carefully and identify requirements and edge cases.
-2. Draft a UML diagram (classes, attributes, methods, relationships).
-3. Convert UML into Python class stubs (no logic yet).
-4. Implement scheduling logic in small increments.
-5. Add tests to verify key behaviors.
-6. Connect your logic to the Streamlit UI in `app.py`.
-7. Refine UML so it matches what you actually built.
+## Design Decisions
+
+**Rule-based AI instead of an LLM** — I used a rule based AI instead of an LLM because there were no APIs called, it was fully deterministic, and every decision is backed by logic. The trade-off is the knowledge. Because it is rule-based, the algorithm is very hardcoded.
+
+**Agent is additive only** —  I also made the agent additive. It allows the user to input their own tasks, and only allows the agent to act if the user wants it to. The agent never removes user input, so it preserves intent while adding autonomously.
+
+**Coverage rule aligned to the full template** — Originally, the Coverage Rule only filled missing categories (feeding, activity, hygiene), which meant a pet with one task got a worse schedule than a pet with no tasks. Aligning it to the full species template made behavior consistent regardless of starting state.
+
+---
+
+## Testing Summary
+
+29 tests cover both the original scheduling system and the new PawAgent rules. All 29 passed. Tests cover the full agent pipeline: Profile Rule generating tasks for empty pets, Coverage Rule filling gaps, Species Rule adding breed- and age-specific tasks, Urgency Rule escalating overdue priorities, Conflict Rule retiming clashing slots, and all four guardrails (task cap, time ceiling, idempotency, priority clamp). The original 9 scheduler tests were preserved to confirm no regressions.
+
+---
+
+## Reflection
+
+Building PawAgent taught me that rule-based AI requires encoding domain knowledge explicitly — every behavior the agent has needed to be deliberately designed and written. Unlike an LLM that generalizes from training data, a rule-based agent only knows what you tell it. This made the system predictable and debuggable, but also highlighted the trade-off: adding support for a new species or breed requires code changes, not just more data. The most valuable insight was that making an AI feel intelligent is less about the complexity of the algorithm and more about the quality of the reasoning it surfaces to the user.
