@@ -197,6 +197,33 @@ class PawAgent:
         self._conflict_resolution_rule()
         return self.decisions
 
+    def _check_guardrails(self, pet: "Pet", task: Task) -> bool:
+        # Idempotency: skip silently if task name already exists on this pet.
+        if any(t.name.lower() == task.name.lower() for t in pet.tasks):
+            return False
+        # 10-task cap.
+        if len(pet.tasks) >= 10:
+            self.decisions.append(AgentDecision(
+                rule="Guardrail",
+                action=f"Skipped '{task.name}' for {pet.name}",
+                reasoning=f"{pet.name} already has 10 tasks (cap reached)",
+                target=pet.name,
+            ))
+            return False
+        # 23:30 ceiling.
+        h, m = map(int, task.time.split(":"))
+        if h * 60 + m > 23 * 60 + 30:
+            self.decisions.append(AgentDecision(
+                rule="Guardrail",
+                action=f"Skipped '{task.name}' for {pet.name}",
+                reasoning=f"Task time {task.time} exceeds the 23:30 ceiling",
+                target=pet.name,
+            ))
+            return False
+        # Priority clamp.
+        task.priority = max(1, min(5, task.priority))
+        return True
+
     def _profile_rule(self) -> None:
         # For every pet with no tasks, generate a full schedule from SPECIES_TEMPLATES.
         for pet in self.owner.pets:
@@ -212,13 +239,14 @@ class PawAgent:
                     frequency=t["frequency"],
                     agent_created=True,
                 )
-                pet.assign_task(task)
-                self.decisions.append(AgentDecision(
-                    rule="ProfileRule",
-                    action=f"Added '{t['name']}' to {pet.name}",
-                    reasoning=f"{pet.name} had no tasks; generated default {pet.species} schedule",
-                    target=pet.name,
-                ))
+                if self._check_guardrails(pet, task):
+                    pet.assign_task(task)
+                    self.decisions.append(AgentDecision(
+                        rule="ProfileRule",
+                        action=f"Added '{t['name']}' to {pet.name}",
+                        reasoning=f"{pet.name} had no tasks; generated default {pet.species} schedule",
+                        target=pet.name,
+                    ))
 
     def _coverage_rule(self) -> None:
         # For pets with tasks, auto-add any missing feeding/activity/hygiene task.
@@ -250,13 +278,14 @@ class PawAgent:
                     frequency=template["frequency"],
                     agent_created=True,
                 )
-                pet.assign_task(task)
-                self.decisions.append(AgentDecision(
-                    rule="CoverageRule",
-                    action=f"Added '{template['name']}' to {pet.name}",
-                    reasoning=f"{pet.name} had no {category} task",
-                    target=pet.name,
-                ))
+                if self._check_guardrails(pet, task):
+                    pet.assign_task(task)
+                    self.decisions.append(AgentDecision(
+                        rule="CoverageRule",
+                        action=f"Added '{template['name']}' to {pet.name}",
+                        reasoning=f"{pet.name} had no {category} task",
+                        target=pet.name,
+                    ))
 
     def _species_rule(self) -> None:
         for pet in self.owner.pets:
@@ -264,43 +293,43 @@ class PawAgent:
 
             if pet.species == "dog":
                 if pet.age >= 7 and "vet check" not in existing:
-                    pet.assign_task(Task(
-                        name="Vet check", time="10:00", priority=1,
-                        description=f"Senior dog check-up for {pet.name}",
-                        frequency="weekly", agent_created=True,
-                    ))
-                    self.decisions.append(AgentDecision(
-                        rule="SpeciesRule",
-                        action=f"Added 'Vet check' to {pet.name}",
-                        reasoning=f"{pet.name} is a senior dog (age {pet.age})",
-                        target=pet.name,
-                    ))
+                    t = Task(name="Vet check", time="10:00", priority=1,
+                             description=f"Senior dog check-up for {pet.name}",
+                             frequency="weekly", agent_created=True)
+                    if self._check_guardrails(pet, t):
+                        pet.assign_task(t)
+                        self.decisions.append(AgentDecision(
+                            rule="SpeciesRule",
+                            action=f"Added 'Vet check' to {pet.name}",
+                            reasoning=f"{pet.name} is a senior dog (age {pet.age})",
+                            target=pet.name,
+                        ))
 
                 if pet.breed.lower() in HIGH_ENERGY_BREEDS and "midday walk" not in existing:
-                    pet.assign_task(Task(
-                        name="Midday walk", time="12:00", priority=2,
-                        description=f"Extra activity for high-energy breed {pet.breed}",
-                        frequency="daily", agent_created=True,
-                    ))
-                    self.decisions.append(AgentDecision(
-                        rule="SpeciesRule",
-                        action=f"Added 'Midday walk' to {pet.name}",
-                        reasoning=f"{pet.name} is a high-energy breed ({pet.breed})",
-                        target=pet.name,
-                    ))
+                    t = Task(name="Midday walk", time="12:00", priority=2,
+                             description=f"Extra activity for high-energy breed {pet.breed}",
+                             frequency="daily", agent_created=True)
+                    if self._check_guardrails(pet, t):
+                        pet.assign_task(t)
+                        self.decisions.append(AgentDecision(
+                            rule="SpeciesRule",
+                            action=f"Added 'Midday walk' to {pet.name}",
+                            reasoning=f"{pet.name} is a high-energy breed ({pet.breed})",
+                            target=pet.name,
+                        ))
 
             if pet.species == "cat" and "litter box cleaning" not in existing:
-                pet.assign_task(Task(
-                    name="Litter box cleaning", time="09:00", priority=2,
-                    description=f"Daily litter maintenance for {pet.name}",
-                    frequency="daily", agent_created=True,
-                ))
-                self.decisions.append(AgentDecision(
-                    rule="SpeciesRule",
-                    action=f"Added 'Litter box cleaning' to {pet.name}",
-                    reasoning=f"{pet.name} is a cat and requires daily litter maintenance",
-                    target=pet.name,
-                ))
+                t = Task(name="Litter box cleaning", time="09:00", priority=2,
+                         description=f"Daily litter maintenance for {pet.name}",
+                         frequency="daily", agent_created=True)
+                if self._check_guardrails(pet, t):
+                    pet.assign_task(t)
+                    self.decisions.append(AgentDecision(
+                        rule="SpeciesRule",
+                        action=f"Added 'Litter box cleaning' to {pet.name}",
+                        reasoning=f"{pet.name} is a cat and requires daily litter maintenance",
+                        target=pet.name,
+                    ))
 
     def _urgency_rule(self) -> None:
         # Proportionally escalate priority for overdue incomplete tasks.
@@ -317,7 +346,7 @@ class PawAgent:
                 if boost == 0:
                     continue
                 old_priority = task.priority
-                task.priority -= boost
+                task.priority = max(1, min(5, task.priority - boost))
                 self.decisions.append(AgentDecision(
                     rule="UrgencyRule",
                     action=f"Raised '{task.name}' priority {old_priority} → {task.priority}",

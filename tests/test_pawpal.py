@@ -295,3 +295,45 @@ def test_conflict_rule_unresolvable_when_no_slot_before_ceiling():
         for d in decisions
     )
 
+
+# --- Guardrails ---
+
+def test_guardrail_task_cap_blocks_at_10_tasks():
+    owner = Owner(name="Alex", email="alex@example.com")
+    pet = Pet(name="Buddy", species="dog", breed="Labrador", age=3)
+    for i in range(10):
+        pet.assign_task(Task(name=f"Task {i}", time=f"{8 + i:02d}:00", priority=3, description=""))
+    owner.register_pet(pet)
+    decisions = PawAgent(owner=owner).run()
+    assert len(pet.tasks) == 10
+    assert any(d.rule == "Guardrail" for d in decisions)
+
+
+def test_guardrail_idempotency_no_duplicate_tasks():
+    owner = Owner(name="Alex", email="alex@example.com")
+    pet = Pet(name="Buddy", species="dog", breed="Labrador", age=3)
+    owner.register_pet(pet)
+    PawAgent(owner=owner).run()
+    count_after_first = len(pet.tasks)
+    PawAgent(owner=owner).run()
+    assert len(pet.tasks) == count_after_first
+
+
+def test_guardrail_priority_clamp_never_below_1():
+    owner = Owner(name="Alex", email="alex@example.com")
+    pet = Pet(name="Buddy", species="dog", breed="Labrador", age=3)
+    task = Task(name="Walk", time="07:00", priority=1, description="",
+                due_date=date.today() - timedelta(days=20))
+    pet.assign_task(task)
+    owner.register_pet(pet)
+    PawAgent(owner=owner).run()
+    assert task.priority >= 1
+
+
+def test_guardrail_priority_clamp_never_above_5():
+    owner = Owner(name="Alex", email="alex@example.com")
+    pet = Pet(name="Buddy", species="dog", breed="Labrador", age=3)
+    owner.register_pet(pet)
+    PawAgent(owner=owner).run()
+    assert all(1 <= t.priority <= 5 for t in pet.tasks)
+

@@ -31,6 +31,50 @@ Integrate agentic planning and error-logging into the existing workflow
 - [ ] 12. Make guardrail firings visible in the UI (e.g. warning when cap hit, when conflict unresolvable)
 
 ### Documentation & Diagrams (Rubric Requirements)
-- [ ] 13. Update architecture/UML diagram to include PawAgent, AgentDecision, SPECIES_TEMPLATES, and agent data flow (input → perceive → rules → act → UI output)
+- [ ] 13. Create system diagram (see System Diagram section below)
 - [ ] 14. Update README: add section clearly identifying original PawPal+ scope vs. what was extended and why
 - [ ] 15. Add 2-3 documented end-to-end demo scenarios to README (e.g. empty dog → full schedule, conflict scenario, overdue task scenario)
+
+---
+
+## System Diagram
+
+The system diagram is separate from the existing class diagram (final_UML.txt).
+It shows data flow, main components, and where humans/tests are involved.
+
+To be written as a Mermaid flowchart in a new file: system_diagram.txt
+
+### Components to include:
+- User (input)
+- Streamlit UI
+- Owner / Pet / Task objects
+- PawAgent (the agent)
+- Rules Engine (Profile, Urgency, Coverage, Species, Conflict, Guardrails)
+- AgentDecision list (output of agent)
+- Reasoning Log + Updated Schedule (UI output)
+- Human review (user reads reasoning log)
+- pytest (tests verify agent behavior)
+
+### Data flow:
+[User: enters pet info + tasks]
+            ↓
+    [Streamlit UI]
+            ↓
+  [Owner / Pet / Task objects]
+            ↓
+     [PawAgent.run()]
+            ↓
+  ┌─── Rules Engine ────┐
+  │  Profile Rule       │
+  │  Urgency Rule       │
+  │  Coverage Rule      │
+  │  Species Rule       │
+  │  Conflict Rule      │
+  │  + Guardrails       │
+  └─────────────────────┘
+            ↓
+  [list of AgentDecisions]
+            ↓
+  [Streamlit UI — Reasoning Log + Updated Schedule]
+            ↓
+  [Human reviews decisions] + [pytest verifies behavior]
