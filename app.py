@@ -69,7 +69,7 @@ if "scheduler" not in st.session_state:
 if "agent_decisions" not in st.session_state:
     st.session_state.agent_decisions = []
 
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
 with col1:
     task_title = st.text_input("Task title", value="Morning walk")
 with col2:
@@ -78,6 +78,9 @@ with col3:
     priority = st.selectbox("Priority", [1, 2, 3, 4, 5], index=2)
 with col4:
     frequency = st.selectbox("Frequency", ["once", "daily", "weekly"])
+with col5:
+    from datetime import date
+    due_date = st.date_input("Due date", value=date.today())
 
 if st.session_state.pets:
     selected_pet_name = st.selectbox("Assign to pet", [p.name for p in st.session_state.pets])
@@ -85,7 +88,7 @@ if st.session_state.pets:
 
     if st.button("Add task"):
         candidate = st.session_state.owner.create_task(
-            name=task_title, time=time, priority=priority, description="", frequency=frequency
+            name=task_title, time=time, priority=priority, description="", frequency=frequency, due_date=due_date
         )
         conflicts = st.session_state.scheduler.detect_conflicts(candidate)
         if conflicts:
@@ -157,21 +160,8 @@ else:
 
 st.divider()
 
-st.subheader("Build Schedule")
-st.caption("This button should call your scheduling logic once you implement it.")
-
-if st.button("Generate schedule"):
-    plan = st.session_state.scheduler.generate_plan()
-    if plan:
-        st.write("Today's Schedule:")
-        for i, task in enumerate(plan, start=1):
-            st.markdown(f"**{i}. [{task.priority}] {task.name}** — {task.time}")
-    else:
-        st.info("No tasks found. Register a pet and add tasks first.")
-st.divider()
-
 st.subheader("AI Agent")
-st.caption("Runs PawAgent against all registered pets and shows its reasoning.")
+st.caption("The agent can create tasks for your pet based on its species and breed. Simply press Run Agent to autofill your tasks, resolve conflicts, and escalate overdue priorities automatically.")
 
 if st.button("Run Agent"):
     agent = PawAgent(owner=st.session_state.owner)
@@ -193,3 +183,17 @@ if st.session_state.agent_decisions:
             st.markdown(f"**[{d.rule}]** {d.action}  \n*{d.reasoning}*")
 else:
     st.info("No agent decisions yet. Register a pet with no tasks and click Run Agent.")
+
+st.divider()
+
+st.subheader("Build Schedule")
+st.caption("Sorts all tasks by priority so you can see what needs to happen first.")
+
+if st.button("Generate schedule"):
+    plan = st.session_state.scheduler.generate_plan()
+    if plan:
+        st.write("Today's Schedule:")
+        for i, task in enumerate(plan, start=1):
+            st.markdown(f"**{i}. {task.name}** — {task.time} · Priority {task.priority} · {task.due_in}")
+    else:
+        st.info("No tasks found. Register a pet and add tasks first.")

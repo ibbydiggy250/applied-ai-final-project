@@ -27,8 +27,9 @@ Integrate agentic planning and error-logging into the existing workflow
 - [1] 10. Add guardrails (10-task cap, 23:30 ceiling, idempotency checks)
 
 ### UI
-- [ ] 11. Add AI Agent UI section (Run Agent button + reasoning log display)
-- [ ] 12. Make guardrail firings visible in the UI (e.g. warning when cap hit, when conflict unresolvable)
+- [1] 11. Add AI Agent UI section (Run Agent button + reasoning log display)
+- [1] 12. Make guardrail firings visible in the UI (e.g. warning when cap hit, when conflict unresolvable)
+- [ ] 16. Add due date picker to task creation form (st.date_input, defaults to today, passes value into Task.due_date)
 
 ### Documentation & Diagrams (Rubric Requirements)
 - [ ] 13. Create system diagram (see System Diagram section below)

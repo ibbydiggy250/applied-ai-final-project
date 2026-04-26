@@ -137,8 +137,8 @@ class Scheduler:
         return [task for pet in self.owner.pets for task in pet.tasks]
 
     def generate_plan(self) -> list[Task]:
-        # Returns all tasks sorted by priority, lowest number first (1 = highest priority).
-        return sorted(self.get_all_tasks(), key=lambda t: t.priority)
+        # Returns all tasks sorted by time, then by due date for same-time tasks.
+        return sorted(self.get_all_tasks(), key=lambda t: (t.time, t.due_date))
     def filter_tasks(self, pet_name: str | None = None, completed: bool | None = None) -> list[Task]:
         # Filter Algorithm: Iterates all tasks once and applies up to two conditions (pet name,
         # completion status) in a single pass using a list comprehension. Using None as a sentinel
@@ -178,9 +178,11 @@ class Owner:
         # Adds a pet to the owner's pet list.
         self.pets.append(pet)
 
-    def create_task(self, name: str, time: str, priority: int, description: str, frequency: str = "daily") -> Task:
+    def create_task(self, name: str, time: str, priority: int, description: str, frequency: str = "daily", due_date: date = None) -> Task:
         # Instantiates and returns a new Task with the given attributes.
-        return Task(name=name, time=time, priority=priority, description=description, frequency=frequency)
+        if due_date is None:
+            due_date = date.today()
+        return Task(name=name, time=time, priority=priority, description=description, frequency=frequency, due_date=due_date)
 
 
 @dataclass
@@ -249,26 +251,14 @@ class PawAgent:
                     ))
 
     def _coverage_rule(self) -> None:
-        # For pets with tasks, auto-add any missing feeding/activity/hygiene task.
-        categories = {
-            "feeding":  ["feed", "dinner"],
-            "activity": ["walk", "play"],
-            "hygiene":  ["groom", "litter", "clean"],
-        }
+        # For pets with tasks, add any template tasks not already present by name.
         for pet in self.owner.pets:
             if not pet.tasks:
                 continue
-            existing_names = [t.name.lower() for t in pet.tasks]
+            existing_names = {t.name.lower() for t in pet.tasks}
             templates = SPECIES_TEMPLATES.get(pet.species, SPECIES_TEMPLATES["other"])
-            for category, keywords in categories.items():
-                covered = any(kw in name for name in existing_names for kw in keywords)
-                if covered:
-                    continue
-                template = next(
-                    (t for t in templates if any(kw in t["name"].lower() for kw in keywords)),
-                    None,
-                )
-                if template is None:
+            for template in templates:
+                if template["name"].lower() in existing_names:
                     continue
                 task = Task(
                     name=template["name"],
@@ -280,10 +270,11 @@ class PawAgent:
                 )
                 if self._check_guardrails(pet, task):
                     pet.assign_task(task)
+                    existing_names.add(task.name.lower())
                     self.decisions.append(AgentDecision(
                         rule="CoverageRule",
                         action=f"Added '{template['name']}' to {pet.name}",
-                        reasoning=f"{pet.name} had no {category} task",
+                        reasoning=f"{pet.name} was missing '{template['name']}' from the recommended {pet.species} schedule",
                         target=pet.name,
                     ))
 
@@ -318,18 +309,32 @@ class PawAgent:
                             target=pet.name,
                         ))
 
-            if pet.species == "cat" and "litter box cleaning" not in existing:
-                t = Task(name="Litter box cleaning", time="09:00", priority=2,
-                         description=f"Daily litter maintenance for {pet.name}",
-                         frequency="daily", agent_created=True)
-                if self._check_guardrails(pet, t):
-                    pet.assign_task(t)
-                    self.decisions.append(AgentDecision(
-                        rule="SpeciesRule",
-                        action=f"Added 'Litter box cleaning' to {pet.name}",
-                        reasoning=f"{pet.name} is a cat and requires daily litter maintenance",
-                        target=pet.name,
-                    ))
+            if pet.species == "cat":
+                if "litter box cleaning" not in existing:
+                    t = Task(name="Litter box cleaning", time="09:00", priority=2,
+                             description=f"Daily litter maintenance for {pet.name}",
+                             frequency="daily", agent_created=True)
+                    if self._check_guardrails(pet, t):
+                        pet.assign_task(t)
+                        self.decisions.append(AgentDecision(
+                            rule="SpeciesRule",
+                            action=f"Added 'Litter box cleaning' to {pet.name}",
+                            reasoning=f"{pet.name} is a cat and requires daily litter maintenance",
+                            target=pet.name,
+                        ))
+
+                if pet.age >= 7 and "vet check" not in existing:
+                    t = Task(name="Vet check", time="10:00", priority=1,
+                             description=f"Senior cat check-up for {pet.name}",
+                             frequency="weekly", agent_created=True)
+                    if self._check_guardrails(pet, t):
+                        pet.assign_task(t)
+                        self.decisions.append(AgentDecision(
+                            rule="SpeciesRule",
+                            action=f"Added 'Vet check' to {pet.name}",
+                            reasoning=f"{pet.name} is a senior cat (age {pet.age})",
+                            target=pet.name,
+                        ))
 
     def _urgency_rule(self) -> None:
         # Proportionally escalate priority for overdue incomplete tasks.
