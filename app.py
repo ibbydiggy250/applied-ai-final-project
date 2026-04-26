@@ -1,5 +1,5 @@
 import streamlit as st
-from pawpal_system import Owner, Pet, Scheduler, Task, PawAgent
+from pawpal_system import Owner, Pet, Scheduler, Task, PawAgent, BREED_OPTIONS
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -43,7 +43,7 @@ st.subheader("Quick Demo Inputs (UI only)")
 owner_name = st.text_input("Owner name", value="Jordan")
 pet_name = st.text_input("Pet name", value="Mochi")
 species = st.selectbox("Species", ["dog", "cat", "other"])
-breed = st.text_input("Breed", value="")
+breed = st.selectbox("Breed", BREED_OPTIONS.get(species, BREED_OPTIONS["other"]))
 age = st.number_input("Age (years)", min_value=0, max_value=30, value=0, step=1)
 
 if st.button("Register Pet"):

@@ -27,6 +27,25 @@ HIGH_ENERGY_BREEDS: set[str] = {
     "vizsla", "weimaraner",
 }
 
+BREED_OPTIONS: dict[str, list[str]] = {
+    "dog": [
+        "Australian Shepherd", "Beagle", "Border Collie", "Bulldog",
+        "Chihuahua", "Dalmatian", "German Shepherd", "Golden Retriever",
+        "Husky", "Jack Russell", "Labrador", "Mixed",
+        "Pomeranian", "Poodle", "Rottweiler", "Shih Tzu",
+        "Siberian Husky", "Vizsla", "Weimaraner",
+    ],
+    "cat": [
+        "Abyssinian", "Bengal", "British Shorthair", "Maine Coon",
+        "Mixed", "Persian", "Ragdoll", "Scottish Fold",
+        "Siamese", "Sphynx",
+    ],
+    "other": [
+        "Fish", "Guinea Pig", "Hamster", "Lizard",
+        "Mixed", "Parrot", "Rabbit", "Snake", "Turtle",
+    ],
+}
+
 
 @dataclass
 class Task:
@@ -173,6 +192,7 @@ class PawAgent:
         self.decisions = []
         self._profile_rule()
         self._coverage_rule()
+        self._species_rule()
         self._urgency_rule()
         return self.decisions
 
@@ -234,6 +254,50 @@ class PawAgent:
                     rule="CoverageRule",
                     action=f"Added '{template['name']}' to {pet.name}",
                     reasoning=f"{pet.name} had no {category} task",
+                    target=pet.name,
+                ))
+
+    def _species_rule(self) -> None:
+        for pet in self.owner.pets:
+            existing = [t.name.lower() for t in pet.tasks]
+
+            if pet.species == "dog":
+                if pet.age >= 7 and "vet check" not in existing:
+                    pet.assign_task(Task(
+                        name="Vet check", time="10:00", priority=1,
+                        description=f"Senior dog check-up for {pet.name}",
+                        frequency="weekly", agent_created=True,
+                    ))
+                    self.decisions.append(AgentDecision(
+                        rule="SpeciesRule",
+                        action=f"Added 'Vet check' to {pet.name}",
+                        reasoning=f"{pet.name} is a senior dog (age {pet.age})",
+                        target=pet.name,
+                    ))
+
+                if pet.breed.lower() in HIGH_ENERGY_BREEDS and "midday walk" not in existing:
+                    pet.assign_task(Task(
+                        name="Midday walk", time="12:00", priority=2,
+                        description=f"Extra activity for high-energy breed {pet.breed}",
+                        frequency="daily", agent_created=True,
+                    ))
+                    self.decisions.append(AgentDecision(
+                        rule="SpeciesRule",
+                        action=f"Added 'Midday walk' to {pet.name}",
+                        reasoning=f"{pet.name} is a high-energy breed ({pet.breed})",
+                        target=pet.name,
+                    ))
+
+            if pet.species == "cat" and "litter box cleaning" not in existing:
+                pet.assign_task(Task(
+                    name="Litter box cleaning", time="09:00", priority=2,
+                    description=f"Daily litter maintenance for {pet.name}",
+                    frequency="daily", agent_created=True,
+                ))
+                self.decisions.append(AgentDecision(
+                    rule="SpeciesRule",
+                    action=f"Added 'Litter box cleaning' to {pet.name}",
+                    reasoning=f"{pet.name} is a cat and requires daily litter maintenance",
                     target=pet.name,
                 ))
 
