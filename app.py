@@ -187,6 +187,9 @@ if st.button("Run Agent"):
 
 if st.session_state.agent_decisions:
     for d in st.session_state.agent_decisions:
-        st.markdown(f"**[{d.rule}]** {d.action}  \n*{d.reasoning}*")
+        if d.action == "Your schedule is too full for this task":
+            st.warning(f"**[{d.rule}]** {d.action}  \n*{d.reasoning}*")
+        else:
+            st.markdown(f"**[{d.rule}]** {d.action}  \n*{d.reasoning}*")
 else:
     st.info("No agent decisions yet. Register a pet with no tasks and click Run Agent.")

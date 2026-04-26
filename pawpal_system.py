@@ -194,6 +194,7 @@ class PawAgent:
         self._coverage_rule()
         self._species_rule()
         self._urgency_rule()
+        self._conflict_resolution_rule()
         return self.decisions
 
     def _profile_rule(self) -> None:
@@ -323,3 +324,55 @@ class PawAgent:
                     reasoning=f"Task is {days_overdue} day(s) overdue",
                     target=pet.name,
                 ))
+
+    def _conflict_resolution_rule(self) -> None:
+        # Walk clashing tasks forward in 30-min steps until a free slot is found.
+        # Ceiling is 23:30; anything beyond is unresolvable.
+        CEILING = 23 * 60 + 30
+
+        def to_minutes(t: str) -> int:
+            h, m = map(int, t.split(":"))
+            return h * 60 + m
+
+        def to_time(minutes: int) -> str:
+            return f"{minutes // 60:02d}:{minutes % 60:02d}"
+
+        all_tasks = [task for pet in self.owner.pets for task in pet.tasks]
+        occupied: set[str] = {t.time for t in all_tasks}
+
+        from collections import defaultdict
+        time_groups: dict[str, list[Task]] = defaultdict(list)
+        for task in all_tasks:
+            time_groups[task.time].append(task)
+
+        for time_slot, tasks in time_groups.items():
+            if len(tasks) <= 1:
+                continue
+            # Keep the highest-priority task in place; move the rest.
+            tasks_sorted = sorted(tasks, key=lambda t: t.priority)
+            for task in tasks_sorted[1:]:
+                original_time = task.time
+                candidate = to_minutes(original_time) + 30
+                moved = False
+                while candidate <= CEILING:
+                    new_time = to_time(candidate)
+                    if new_time not in occupied:
+                        occupied.discard(task.time)
+                        task.time = new_time
+                        occupied.add(new_time)
+                        self.decisions.append(AgentDecision(
+                            rule="ConflictRule",
+                            action=f"Moved '{task.name}' from {original_time} to {new_time}",
+                            reasoning=f"'{task.name}' clashed at {original_time}; next free slot at {new_time}",
+                            target=task.name,
+                        ))
+                        moved = True
+                        break
+                    candidate += 30
+                if not moved:
+                    self.decisions.append(AgentDecision(
+                        rule="ConflictRule",
+                        action="Your schedule is too full for this task",
+                        reasoning=f"'{task.name}' clashed at {original_time} and no free slot exists before 23:30",
+                        target=task.name,
+                    ))

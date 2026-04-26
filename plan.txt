@@ -15,15 +15,15 @@ Integrate agentic planning and error-logging into the existing workflow
 ## Implementation Order
 
 ### Core Backend
-- [1 ] 1. Add `agent_created: bool = False` field to `Task` dataclass
-- [1 ] 2. Add `AgentDecision` dataclass (rule, action, reasoning, target)
-- [1 ] 3. Wire up `age` and `breed` inputs in pet registration UI
-- [ 1] 4. Add `SPECIES_TEMPLATES` and `HIGH_ENERGY_BREEDS` lookup tables
-- [1 ] 5. Implement Profile Rule (generate full schedule for empty pets)
-- [1 ] 6. Implement Urgency Rule (proportional priority escalation for overdue tasks)
-- [1 ] 7. Implement Coverage Rule (auto-add missing feeding/activity/hygiene tasks)
-- [ ] 8. Implement Species Rule (species/age-specific task additions)
-- [ ] 9. Implement Conflict Resolution Rule (retime clashing tasks)
+- [1] 1. Add `agent_created: bool = False` field to `Task` dataclass
+- [1] 2. Add `AgentDecision` dataclass (rule, action, reasoning, target)
+- [1] 3. Wire up `age` and `breed` inputs in pet registration UI
+- [1] 4. Add `SPECIES_TEMPLATES` and `HIGH_ENERGY_BREEDS` lookup tables
+- [1] 5. Implement Profile Rule (generate full schedule for empty pets)
+- [1] 6. Implement Urgency Rule (proportional priority escalation for overdue tasks)
+- [1] 7. Implement Coverage Rule (auto-add missing feeding/activity/hygiene tasks)
+- [1] 8. Implement Species Rule (species/age-specific task additions)
+- [1] 9. Implement Conflict Resolution Rule (retime clashing tasks)
 - [ ] 10. Add guardrails (10-task cap, 23:30 ceiling, idempotency checks)
 
 ### UI

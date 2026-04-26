@@ -244,3 +244,54 @@ def test_species_rule_no_duplicate_litter_if_already_present():
     count = sum(1 for t in pet.tasks if t.name.lower() == "litter box cleaning")
     assert count == 1
 
+
+# --- Conflict Resolution Rule ---
+
+def test_conflict_rule_moves_lower_priority_task():
+    owner = Owner(name="Alex", email="alex@example.com")
+    pet = Pet(name="Buddy", species="dog", breed="Labrador", age=3)
+    pet.assign_task(Task(name="Feeding",  time="08:00", priority=1, description=""))
+    pet.assign_task(Task(name="Grooming", time="08:00", priority=3, description=""))
+    owner.register_pet(pet)
+    PawAgent(owner=owner).run()
+    times = [t.time for t in pet.tasks]
+    assert times.count("08:00") == 1
+
+
+def test_conflict_rule_keeps_higher_priority_task_in_place():
+    owner = Owner(name="Alex", email="alex@example.com")
+    pet = Pet(name="Buddy", species="dog", breed="Labrador", age=3)
+    pet.assign_task(Task(name="Feeding",  time="08:00", priority=1, description=""))
+    pet.assign_task(Task(name="Grooming", time="08:00", priority=3, description=""))
+    owner.register_pet(pet)
+    PawAgent(owner=owner).run()
+    feeding = next(t for t in pet.tasks if t.name == "Feeding")
+    assert feeding.time == "08:00"
+
+
+def test_conflict_rule_skips_to_next_free_slot_when_30min_occupied():
+    owner = Owner(name="Alex", email="alex@example.com")
+    pet = Pet(name="Buddy", species="dog", breed="Labrador", age=3)
+    pet.assign_task(Task(name="Feeding",  time="08:00", priority=1, description=""))
+    pet.assign_task(Task(name="Meds",     time="08:30", priority=2, description=""))
+    pet.assign_task(Task(name="Grooming", time="08:00", priority=3, description=""))
+    owner.register_pet(pet)
+    PawAgent(owner=owner).run()
+    grooming = next(t for t in pet.tasks if t.name == "Grooming")
+    assert grooming.time == "09:00"
+
+
+def test_conflict_rule_unresolvable_when_no_slot_before_ceiling():
+    owner = Owner(name="Alex", email="alex@example.com")
+    pet = Pet(name="Buddy", species="dog", breed="Labrador", age=3)
+    # Fill every 30-min slot from 23:00 onward, then create a conflict at 23:00
+    pet.assign_task(Task(name="Task A", time="23:00", priority=1, description=""))
+    pet.assign_task(Task(name="Task B", time="23:30", priority=2, description=""))
+    pet.assign_task(Task(name="Task C", time="23:00", priority=3, description=""))
+    owner.register_pet(pet)
+    decisions = PawAgent(owner=owner).run()
+    assert any(
+        d.rule == "ConflictRule" and d.action == "Your schedule is too full for this task"
+        for d in decisions
+    )
+
