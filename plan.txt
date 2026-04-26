@@ -24,7 +24,7 @@ Integrate agentic planning and error-logging into the existing workflow
 - [1] 7. Implement Coverage Rule (auto-add missing feeding/activity/hygiene tasks)
 - [1] 8. Implement Species Rule (species/age-specific task additions)
 - [1] 9. Implement Conflict Resolution Rule (retime clashing tasks)
-- [ ] 10. Add guardrails (10-task cap, 23:30 ceiling, idempotency checks)
+- [1] 10. Add guardrails (10-task cap, 23:30 ceiling, idempotency checks)
 
 ### UI
 - [ ] 11. Add AI Agent UI section (Run Agent button + reasoning log display)

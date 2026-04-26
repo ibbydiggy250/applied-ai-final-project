@@ -6,6 +6,7 @@ classDiagram
         +String description
         +String frequency
         +bool completed
+        +bool agent_created
         +date due_date
         +/due_in : String
         +edit(name, time, priority, description, frequency)
@@ -41,9 +42,31 @@ classDiagram
         +create_task(name, time, priority, description, frequency)
     }
 
+    class AgentDecision {
+        +String rule
+        +String action
+        +String reasoning
+        +String target
+    }
+
+    class PawAgent {
+        +Owner owner
+        +List~AgentDecision~ decisions
+        +run() List~AgentDecision~
+        +_check_guardrails(pet, task) bool
+        +_profile_rule()
+        +_coverage_rule()
+        +_species_rule()
+        +_urgency_rule()
+        +_conflict_resolution_rule()
+    }
+
     Owner "1" --> "0..*" Pet : owns
     Owner "1" --> "1" Scheduler : has
     Owner ..> Task : creates
     Pet "1" --> "0..*" Task : stores
     Scheduler --> Owner : references
     Task --> Task : renew()
+    PawAgent --> Owner : references
+    PawAgent ..> AgentDecision : creates
+    PawAgent ..> Task : creates

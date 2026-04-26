@@ -1,0 +1,39 @@
+flowchart TD
+    User["👤 User\nenters pet info + tasks"] --> UI1["Streamlit UI\napp.py"]
+
+    subgraph DataModel["Data Model"]
+        Owner["Owner\nname · email · pets · scheduler"]
+        Scheduler["Scheduler\ndetect_conflicts · filter_tasks\nsort_by_time · generate_plan"]
+        Pet["Pet\nname · species · breed · age · tasks"]
+        Task["Task\nname · time · priority · frequency\ncompleted · agent_created · due_date"]
+        Owner --> Scheduler
+        Owner --> Pet
+        Pet --> Task
+    end
+
+    UI1 --> DataModel
+
+    DataModel --> Agent["PawAgent\nowner · decisions · .run()"]
+
+    subgraph RulesEngine["Rules Engine"]
+        R1["Profile Rule\nempty pet → full species schedule"]
+        R2["Coverage Rule\nfill missing feeding / activity / hygiene"]
+        R3["Species Rule\nsenior vet check · high-energy walk · cat litter"]
+        R4["Urgency Rule\nescalate priority for overdue tasks"]
+        R5["Conflict Rule\nretime clashing slots in 30-min steps"]
+        GR["⛨ Guardrails\n10-task cap · 23:30 ceiling\nidempotency · priority clamp 1–5"]
+        R1 --> GR
+        R2 --> GR
+        R3 --> GR
+    end
+
+    Agent --> RulesEngine
+
+    GR --> Dec["list[AgentDecision]\nrule · action · reasoning · target"]
+    R4 --> Dec
+    R5 --> Dec
+
+    Dec --> UI2["Streamlit UI\nReasoning Log + Updated Schedule"]
+
+    UI2 --> Human["👤 Human\nreviews decisions"]
+    UI2 --> Tests["pytest\nverifies agent behavior"]
