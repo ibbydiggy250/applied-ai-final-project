@@ -7,39 +7,14 @@ st.title("🐾 PawPal+")
 
 st.markdown(
     """
-Welcome to the PawPal+ starter app.
+**PawPal+** is a pet care planning assistant. It helps a pet owner plan care tasks
+for their pet(s) based on constraints like time, priority, and preferences. **PawAgent** allows you to generate tasks for your pets based on the attrivutes the ownerr assigns them. This app is where you keep all your pets needs in one place.
 
-This file is intentionally thin. It gives you a working Streamlit app so you can start quickly,
-but **it does not implement the project logic**. Your job is to design the system and build it.
-
-Use this app as your interactive demo once your backend classes/functions exist.
 """
 )
-
-with st.expander("Scenario", expanded=True):
-    st.markdown(
-        """
-**PawPal+** is a pet care planning assistant. It helps a pet owner plan care tasks
-for their pet(s) based on constraints like time, priority, and preferences.
-
-You will design and implement the scheduling logic and connect it to this Streamlit UI.
-"""
-    )
-
-with st.expander("What you need to build", expanded=True):
-    st.markdown(
-        """
-At minimum, your system should:
-- Represent pet care tasks (what needs to happen, how long it takes, priority)
-- Represent the pet and the owner (basic info and preferences)
-- Build a plan/schedule for a day that chooses and orders tasks based on constraints
-- Explain the plan (why each task was chosen and when it happens)
-"""
-    )
-
 st.divider()
 
-st.subheader("Quick Demo Inputs (UI only)")
+st.subheader("Pet Registration")
 owner_name = st.text_input("Owner name", value="Jordan")
 pet_name = st.text_input("Pet name", value="Mochi")
 species = st.selectbox("Species", ["dog", "cat", "other"])
@@ -213,7 +188,9 @@ if st.button("Generate schedule"):
     plan = st.session_state.scheduler.generate_plan()
     if plan:
         st.write("Today's Schedule:")
+        plan_task_to_pet = {id(task): pet.name for pet in st.session_state.pets for task in pet.tasks}
         for i, task in enumerate(plan, start=1):
-            st.markdown(f"**{i}. {task.name}** — {task.time} · Priority {task.priority} · {task.due_in}")
+            pet_label = plan_task_to_pet.get(id(task), "")
+            st.markdown(f"**{i}. {task.name}** ({pet_label}) — {task.time} · Priority {task.priority} · {task.due_in}")
     else:
         st.info("No tasks found. Register a pet and add tasks first.")

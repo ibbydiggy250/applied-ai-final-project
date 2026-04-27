@@ -97,4 +97,10 @@ Mochi is a senior cat with no tasks. The Profile Rule generates a full cat sched
 
 ## Reflection
 
-Building PawAgent taught me that rule-based AI requires encoding domain knowledge explicitly — every behavior the agent has needed to be deliberately designed and written. Unlike an LLM that generalizes from training data, a rule-based agent only knows what you tell it. This made the system predictable and debuggable, but also highlighted the trade-off: adding support for a new species or breed requires code changes, not just more data. The most valuable insight was that making an AI feel intelligent is less about the complexity of the algorithm and more about the quality of the reasoning it surfaces to the user.
+Building PawAgent taught me that rule-based AI requires hardcoding the AI logic explicitly. I have to make sure that every decision the agent needs to make is deliberately designed and written. Unlike an LLM that generalizes from training data, a rule-based agent only knows what you tell it. This made the system predictable and debuggable, but also highlighted the trade-off. Adding support for more species or breeds required more coding, rather than feeding data. The most valuable insight was that making an AI feel intelligent is less about the complexity of the algorithm and more about the quality of the reasoning it surfaces to the user. If the user can follow what the AI is doing, they can understand the thought process and logic behind it. 
+
+## Demo Video:
+
+Through Loom: https://www.loom.com/share/63959c622bb944a690a3ef0e38d8fffe
+
+This video covers the examples shown in the sample interactions. It is a live demo of the end to end app run, showing pet generation, task addition, Agent features, and Schedule generation.
