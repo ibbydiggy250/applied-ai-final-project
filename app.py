@@ -68,6 +68,8 @@ if "scheduler" not in st.session_state:
     st.session_state.scheduler = Scheduler(owner=st.session_state.owner)
 if "agent_decisions" not in st.session_state:
     st.session_state.agent_decisions = []
+if "pending_delete" not in st.session_state:
+    st.session_state.pending_delete = None
 
 col1, col2, col3, col4, col5 = st.columns(5)
 with col1:
@@ -126,7 +128,7 @@ if st.session_state.tasks:
         for task in pet.tasks
     }
 
-    col1, col2, col3, col4, col5, col6, col7 = st.columns([1, 2, 3, 2, 2, 2, 2])
+    col1, col2, col3, col4, col5, col6, col7, col8 = st.columns([1, 2, 3, 2, 2, 2, 2, 1])
     col1.markdown("**Done**")
     col2.markdown("**Pet**")
     col3.markdown("**Task**")
@@ -134,9 +136,10 @@ if st.session_state.tasks:
     col5.markdown("**Priority**")
     col6.markdown("**Frequency**")
     col7.markdown("**Due**")
+    col8.markdown("**🗑**")
     st.divider()
     for task in filtered:
-        col1, col2, col3, col4, col5, col6, col7 = st.columns([1, 2, 3, 2, 2, 2, 2])
+        col1, col2, col3, col4, col5, col6, col7, col8 = st.columns([1, 2, 3, 2, 2, 2, 2, 1])
         checked = col1.checkbox("", value=task.completed, key=id(task))
         if checked and not task.completed:
             task.mark_complete()
@@ -155,6 +158,23 @@ if st.session_state.tasks:
         col5.markdown(str(task.priority))
         col6.markdown(task.frequency)
         col7.markdown(task.due_in)
+        if col8.button("🗑", key=f"del_{id(task)}"):
+            st.session_state.pending_delete = id(task)
+            st.rerun()
+        if st.session_state.pending_delete == id(task):
+            st.warning(f"Delete **{task.name}**? This cannot be undone.")
+            c1, c2, _ = st.columns([1, 1, 6])
+            if c1.button("Yes, delete", key=f"confirm_{id(task)}"):
+                pet_name_for_task = task_to_pet.get(id(task), "")
+                pet_for_task = next((p for p in st.session_state.pets if p.name == pet_name_for_task), None)
+                if pet_for_task:
+                    pet_for_task.tasks = [t for t in pet_for_task.tasks if t is not task]
+                st.session_state.tasks = [(t, n) for t, n in st.session_state.tasks if t is not task]
+                st.session_state.pending_delete = None
+                st.rerun()
+            if c2.button("Cancel", key=f"cancel_{id(task)}"):
+                st.session_state.pending_delete = None
+                st.rerun()
 else:
     st.info("No tasks yet. Add one above.")
 
