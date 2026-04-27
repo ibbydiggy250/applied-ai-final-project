@@ -60,7 +60,7 @@ Buddy is registered with no tasks. PawAgent runs the Profile Rule and generates 
 
 **Resulting schedule:**
 
-![alt text](image-1.png)
+![alt text](ex1.png)
 ---
 
 ### Input 2 — Mochi (Dog, Bulldog, Age 2) — Morning walk manually added at 08:00
@@ -68,7 +68,7 @@ Mochi already has one task. The Coverage Rule fills in the rest of the recommend
 
 **Resulting schedule:**
 
-![alt text](image-2.png)
+![alt text](ex2.png)
 
 ---
 
@@ -76,7 +76,8 @@ Mochi already has one task. The Coverage Rule fills in the rest of the recommend
 Mochi is a senior cat with no tasks. The Profile Rule generates a full cat schedule from scratch. The Species Rule then adds a weekly Vet check because Mochi is age 10 (≥ 7).
 
 **Resulting schedule:**
-![alt text](image-3.png)
+
+![alt text](ex3.png)
 
 ## Design Decisions
 
